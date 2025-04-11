@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
@@ -58,6 +60,8 @@ fun MainScreen() {
     var tanggalError by remember { mutableStateOf(false) }
     var genderError by remember { mutableStateOf(false) }
 
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -73,7 +77,8 @@ fun MainScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -210,6 +215,7 @@ fun MainScreen() {
         }
     }
 }
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
