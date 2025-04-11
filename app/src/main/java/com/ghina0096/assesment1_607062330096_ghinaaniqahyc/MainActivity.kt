@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.navigation.SetupNavGraph
 import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.screen.MainScreen
 import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.ui.theme.Assesment1_607062330096_GhinaAniqahYCTheme
 
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Assesment1_607062330096_GhinaAniqahYCTheme {
-                MainScreen()
+                SetupNavGraph()
                 }
             }
         }

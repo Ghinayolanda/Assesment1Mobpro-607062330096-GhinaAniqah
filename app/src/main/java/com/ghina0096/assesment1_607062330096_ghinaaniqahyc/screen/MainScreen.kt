@@ -1,58 +1,42 @@
 package com.ghina0096.assesment1_607062330096_ghinaaniqahyc.screen
 
-import android.icu.util.Calendar
+import android.app.DatePickerDialog
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
 import android.widget.DatePicker
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.R
 import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.ui.theme.Assesment1_607062330096_GhinaAniqahYCTheme
+import java.util.Calendar
+
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
-fun MainScreen() {
+fun MainScreen(navController: NavHostController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,10 +47,10 @@ fun MainScreen() {
                 ),
                 actions = {
                     IconButton(onClick = {
-
+                        navController.navigate("aboutScreen")
                     }) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Outlined.Info,
+                            imageVector = Icons.Outlined.Info,
                             contentDescription = "Tentang Aplikasi",
                             tint = Color.White
                         )
@@ -92,17 +76,22 @@ fun ScreenContent(modifier: Modifier = Modifier) {
 
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
-    android.app.DatePickerDialog(
-        context,
-        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            selectedDate = "%02d/%02d/%04d".format(dayOfMonth, month + 1, year)
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
+    val showDatePickerDialog = remember { mutableStateOf(false) }
 
     val genderOptions = listOf("Laki-laki", "Perempuan")
+
+    if (showDatePickerDialog.value) {
+        DatePickerDialog(
+            context,
+            { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+                selectedDate = "%02d/%02d/%04d".format(dayOfMonth, month + 1, year)
+                showDatePickerDialog.value = false
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
     Column(
         modifier = modifier
@@ -112,6 +101,22 @@ fun ScreenContent(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.buku),
+            contentDescription = "Ilustrasi Buku",
+            modifier = Modifier
+                .size(150.dp)
+                .padding(top = 8.dp)
+        )
+
+        Text(
+            text = "Aplikasi ini digunakan untuk mencatat dan membagikan data diri kamu dengan mudah.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            color = Color.DarkGray
+        )
+
+
         OutlinedTextField(
             value = nama,
             onValueChange = {
@@ -122,20 +127,19 @@ fun ScreenContent(modifier: Modifier = Modifier) {
             label = { Text("Nama") },
             isError = namaError,
             singleLine = true,
+            trailingIcon = {
+                IconPicker(isError = namaError, unit = "✓")
+            },
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
             ),
             modifier = Modifier.fillMaxWidth()
         )
-        if (namaError) {
-            Text(
-                text = "Nama tidak boleh kosong",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.align(Alignment.Start)
-            )
-        }
+        ErrorHint(
+            isError = namaError,
+            errorMessage = stringResource(id = R.string.error_nama_kosong)
+        )
 
         OutlinedTextField(
             value = selectedDate,
@@ -150,13 +154,17 @@ fun ScreenContent(modifier: Modifier = Modifier) {
                 showResult = false
                 tanggalError = false
             },
-                    label = { Text(stringResource(id = R.string.label_tanggal_lahir)) },
+            label = { Text(stringResource(id = R.string.label_tanggal_lahir)) },
             isError = tanggalError,
             trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = stringResource(id = R.string.icon_desc_tanggal)
-                )
+                IconButton(onClick = {
+                    showDatePickerDialog.value = true
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = stringResource(id = R.string.icon_desc_tanggal)
+                    )
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -164,15 +172,10 @@ fun ScreenContent(modifier: Modifier = Modifier) {
                 keyboardType = KeyboardType.Number
             )
         )
-        if (tanggalError) {
-            Text(
-                text = "Tanggal lahir tidak boleh kosong",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.align(Alignment.Start)
-            )
-        }
-
+        ErrorHint(
+            isError = tanggalError,
+            errorMessage = stringResource(id = R.string.error_tanggal_kosong)
+        )
 
         Text(text = "Jenis Kelamin", style = MaterialTheme.typography.bodyLarge)
         Row(
@@ -193,14 +196,10 @@ fun ScreenContent(modifier: Modifier = Modifier) {
                 }
             }
         }
-        if (genderError) {
-            Text(
-                text = "Pilih jenis kelamin terlebih dahulu",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        }
+        ErrorHint(
+            isError = genderError,
+            errorMessage = stringResource(id = R.string.error_gender_kosong)
+        )
 
         Button(
             onClick = {
@@ -219,21 +218,65 @@ fun ScreenContent(modifier: Modifier = Modifier) {
 
         if (showResult) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Hasil Data Diri", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("Hasil Data Diri", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Nama: $nama")
                 Text("Tanggal Lahir: $selectedDate")
                 Text("Jenis Kelamin: $selectedGender")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        val message = """
+                            Data Diri Saya:
+                            - Nama: $nama
+                            - Tanggal Lahir: $selectedDate
+                            - Jenis Kelamin: $selectedGender
+                        """.trimIndent()
+                        shareData(context, message)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFCE93D8),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Bagikan Data")
+                }
             }
         }
     }
 }
-
-
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
+fun IconPicker(isError: Boolean, unit: String) {
+    if (isError) {
+        Icon(imageVector = Icons.Filled.Warning, contentDescription = null, tint = Color.Red)
+    } else {
+        Text(text = unit)
+    }
+}
+
+@Composable
+fun ErrorHint(isError: Boolean, errorMessage: String) {
+    if (isError) {
+        Text(text = errorMessage, color = Color.Red)
+    }
+}
+
+private fun shareData(context: Context, message: String) {
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, message)
+    }
+    if (shareIntent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(shareIntent)
+    }
+}
+@Composable
+@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 fun MainScreenPreview() {
     Assesment1_607062330096_GhinaAniqahYCTheme {
-        MainScreen()
+        MainScreen(rememberNavController())
     }
 }
