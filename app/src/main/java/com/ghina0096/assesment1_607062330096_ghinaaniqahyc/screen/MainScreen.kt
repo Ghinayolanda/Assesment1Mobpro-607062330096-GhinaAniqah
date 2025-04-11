@@ -53,6 +53,11 @@ fun MainScreen() {
     var selectedDate by remember { mutableStateOf("") }
     var showResult by remember { mutableStateOf(false) }
 
+    // Validasi
+    var namaError by remember { mutableStateOf(false) }
+    var tanggalError by remember { mutableStateOf(false) }
+    var genderError by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,8 +82,10 @@ fun MainScreen() {
                 onValueChange = {
                     nama = it
                     showResult = false
+                    namaError = false
                 },
                 label = { Text(stringResource(id = R.string.label_nama)) },
+                isError = namaError,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Next,
@@ -86,6 +93,13 @@ fun MainScreen() {
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
+            if (namaError) {
+                Text(
+                    text = "Nama tidak boleh kosong",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             OutlinedTextField(
                 value = selectedDate,
@@ -101,8 +115,10 @@ fun MainScreen() {
                     }
                     selectedDate = formatted
                     showResult = false
+                    tanggalError = false
                 },
                 label = { Text(stringResource(id = R.string.label_tanggal_lahir)) },
+                isError = tanggalError,
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.DateRange,
@@ -115,6 +131,14 @@ fun MainScreen() {
                     keyboardType = KeyboardType.Number
                 )
             )
+
+            if (tanggalError) {
+                Text(
+                    text = "Tanggal lahir tidak boleh kosong",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Text(
                 text = stringResource(id = R.string.label_jenis_kelamin),
@@ -132,16 +156,27 @@ fun MainScreen() {
                             onClick = {
                                 selectedGender = gender
                                 showResult = false
+                                genderError = false
                             }
                         )
                         Text(text = gender)
                     }
                 }
             }
+            if (genderError) {
+                Text(
+                    text = "Pilih jenis kelamin terlebih dahulu",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Button(
                 onClick = {
-                    showResult = true
+                    namaError = nama.isBlank()
+                    tanggalError = selectedDate.isBlank()
+                    genderError = selectedGender.isBlank()
+                    showResult = !(namaError || tanggalError || genderError)
                 }
             ) {
                 Text(stringResource(id = R.string.lihat_hasil))
