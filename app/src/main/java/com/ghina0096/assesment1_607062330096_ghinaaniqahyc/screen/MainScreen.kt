@@ -1,5 +1,8 @@
 package com.ghina0096.assesment1_607062330096_ghinaaniqahyc.screen
 
+import android.icu.util.Calendar
+import android.widget.DatePicker
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,9 +16,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -43,174 +50,180 @@ import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.R
 import com.ghina0096.assesment1_607062330096_ghinaaniqahyc.ui.theme.Assesment1_607062330096_GhinaAniqahYCTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun MainScreen() {
-    val context = LocalContext.current
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Data Diri") },
+                colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = Color(0xFFE1BEE7),
+                    titleContentColor = Color.White
+                ),
+                actions = {
+                    IconButton(onClick = {
+
+                    }) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.Info,
+                            contentDescription = "Tentang Aplikasi",
+                            tint = Color.White
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        ScreenContent(modifier = Modifier.padding(paddingValues))
+    }
+}
+
+@Composable
+fun ScreenContent(modifier: Modifier = Modifier) {
     var nama by remember { mutableStateOf("") }
     var selectedGender by remember { mutableStateOf("") }
-    val genderOptions = listOf(
-        stringResource(id = R.string.gender_laki_laki),
-        stringResource(id = R.string.gender_perempuan)
-    )
     var selectedDate by remember { mutableStateOf("") }
-    var showResult by remember { mutableStateOf(false) }
 
-    // Validasi
+    var showResult by remember { mutableStateOf(false) }
     var namaError by remember { mutableStateOf(false) }
     var tanggalError by remember { mutableStateOf(false) }
     var genderError by remember { mutableStateOf(false) }
 
-    val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    android.app.DatePickerDialog(
+        context,
+        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+            selectedDate = "%02d/%02d/%04d".format(dayOfMonth, month + 1, year)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.app_name)) },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFFE1BEE7),
-                    titleContentColor = Color.White
-                )
+    val genderOptions = listOf("Laki-laki", "Perempuan")
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OutlinedTextField(
+            value = nama,
+            onValueChange = {
+                nama = it
+                namaError = false
+                showResult = false
+            },
+            label = { Text("Nama") },
+            isError = namaError,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+        if (namaError) {
+            Text(
+                text = "Nama tidak boleh kosong",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.align(Alignment.Start)
             )
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .padding(paddingValues)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            OutlinedTextField(
-                value = nama,
-                onValueChange = {
-                    nama = it
-                    showResult = false
-                    namaError = false
-                },
-                label = { Text(stringResource(id = R.string.label_nama)) },
-                isError = namaError,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next,
-                    keyboardType = KeyboardType.Text
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (namaError) {
-                Text(
-                    text = "Nama tidak boleh kosong",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
 
-            OutlinedTextField(
-                value = selectedDate,
-                onValueChange = {
-                    val digits = it.filter { char -> char.isDigit() }
-                    val formatted = buildString {
-                        for (i in digits.indices) {
-                            append(digits[i])
-                            if ((i == 1 || i == 3) && i != digits.lastIndex) {
-                                append('/')
-                            }
-                        }
+        OutlinedTextField(
+            value = selectedDate,
+            onValueChange = {
+                val digitsOnly = it.filter { char -> char.isDigit() }.take(8)
+                selectedDate = buildString {
+                    for (i in digitsOnly.indices) {
+                        append(digitsOnly[i])
+                        if ((i == 1 || i == 3) && i != digitsOnly.lastIndex) append('/')
                     }
-                    selectedDate = formatted
-                    showResult = false
-                    tanggalError = false
-                },
-                label = { Text(stringResource(id = R.string.label_tanggal_lahir)) },
-                isError = tanggalError,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = stringResource(id = R.string.icon_desc_tanggal)
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next,
-                    keyboardType = KeyboardType.Number
+                }
+                showResult = false
+                tanggalError = false
+            },
+                    label = { Text(stringResource(id = R.string.label_tanggal_lahir)) },
+            isError = tanggalError,
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = stringResource(id = R.string.icon_desc_tanggal)
                 )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Number
             )
-
-            if (tanggalError) {
-                Text(
-                    text = "Tanggal lahir tidak boleh kosong",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
+        )
+        if (tanggalError) {
             Text(
-                text = stringResource(id = R.string.label_jenis_kelamin),
-                style = MaterialTheme.typography.bodyLarge
+                text = "Tanggal lahir tidak boleh kosong",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.align(Alignment.Start)
             )
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                genderOptions.forEach { gender ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = selectedGender == gender,
-                            onClick = {
-                                selectedGender = gender
-                                showResult = false
-                                genderError = false
-                            }
-                        )
-                        Text(text = gender)
-                    }
+
+        Text(text = "Jenis Kelamin", style = MaterialTheme.typography.bodyLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            genderOptions.forEach { gender ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selectedGender == gender,
+                        onClick = {
+                            selectedGender = gender
+                            genderError = false
+                            showResult = false
+                        }
+                    )
+                    Text(text = gender)
                 }
             }
-            if (genderError) {
-                Text(
-                    text = "Pilih jenis kelamin terlebih dahulu",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+        }
+        if (genderError) {
+            Text(
+                text = "Pilih jenis kelamin terlebih dahulu",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
 
-            Button(
-                onClick = {
-                    namaError = nama.isBlank()
-                    tanggalError = selectedDate.isBlank()
-                    genderError = selectedGender.isBlank()
-                    showResult = !(namaError || tanggalError || genderError)
-                }
-            ) {
-                Text(stringResource(id = R.string.lihat_hasil))
-            }
+        Button(
+            onClick = {
+                namaError = nama.isBlank()
+                tanggalError = selectedDate.isBlank()
+                genderError = selectedGender.isBlank()
+                showResult = !(namaError || tanggalError || genderError)
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF48FB1),
+                contentColor = Color.White
+            )
+        ) {
+            Text("Lihat Hasil")
+        }
 
-            if (showResult) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.hasil_data_diri),
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(id = R.string.hasil_nama, nama),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = stringResource(id = R.string.hasil_tanggal_lahir, selectedDate),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = stringResource(id = R.string.hasil_jenis_kelamin, selectedGender),
-                        textAlign = TextAlign.Center
-                    )
-                }
+        if (showResult) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Hasil Data Diri", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Nama: $nama")
+                Text("Tanggal Lahir: $selectedDate")
+                Text("Jenis Kelamin: $selectedGender")
             }
         }
     }
